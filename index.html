@@ -103,7 +103,7 @@ async function generateMinecraftMod() {
     
     let systemInstruction = "";
     if (aiMode === "planning") {
-        systemInstruction = `You are a professional technical designer for Minecraft ${edition} mods. Create a detailed development and architecture plan for the user's idea. Break down the folder structure, listing all necessary files (like scripts, asset names, configurations) and give an explanation of how to program the logic block-by-block. Output your result directly as a beautiful, comprehensive, clean Markdown text file layout. Do not wrap the output in json or markdown code blocks. Start your response directly with the title '# Minecraft Mod Blueprint'.`;
+        systemInstruction = `You are a professional technical designer for Minecraft ${edition} mods. Create a detailed development and architecture plan for the user's idea. Break down the folder structure, listing all necessary files and give an explanation of how to program the logic block-by-block. Output your result directly as a beautiful, comprehensive, clean Markdown text file layout. Do not wrap the output in json or markdown code blocks. Start your response directly with the title '# Minecraft Mod Blueprint'.`;
     } else {
         if (edition === "bedrock") {
             systemInstruction = "You are an expert Minecraft Bedrock Add-on developer. Create an asset bundle for the user. Your output must be a single, valid JSON object containing exactly two keys: 'manifest' (the manifest.json object parameters) and 'logic_js' (the main script logic file string text). Do not include any extra conversational markdown text, descriptions, or formatting backticks.";
@@ -133,16 +133,16 @@ async function generateMinecraftMod() {
             return;
         }
 
-        let aiText = data.generated_text || (Array.isArray(data) && data?.generated_text) || data?.generated_text;
-        if (!aiText && Array.isArray(data) && typeof data === 'string') aiText = data;
-        
-        if (!aiText) {
+        let aiText = "";
+        if (Array.isArray(data) && data[0] && data[0].generated_text) {
+            aiText = data[0].generated_text;
+        } else if (data && data.generated_text) {
+            aiText = data.generated_text;
+        } else {
             throw new Error(data.error || "The cloud server dropped the pipeline link. Click run button to try again.");
         }
         
         aiText = aiText.trim();
-        
-        // Print the raw AI response text cleanly inside the Chat Log interface view box right away
         appendMessage('ai', aiText);
         
         const zip = new JSZip();
@@ -164,3 +164,5 @@ async function generateMinecraftMod() {
             const parsedData = JSON.parse(cleanJsonString);
             
             appendMessage('system', 'System: Packaging logical files inside compressed virtual memory tree...');
+            if (edition === "bedrock") {
+                zip.file("manifest.json", JSON.stringify(parsedData.manifest || {}, null, 4));
