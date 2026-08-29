@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛏️ Free MC Mod AI Generator</title>
+
+    <script src="https://cloudflare.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; text-align: center; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #1e1e1e; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        input[type="text"] { width: 100%; padding: 12px; margin: 20px 0; border-radius: 4px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; }
+        button { background-color: #ff6f00; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
+        button:hover { background-color: #e65100; }
+        #status { margin-top: 20px; color: #aaa; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⛏️ Free MC Mod AI Generator</h2>
+    <p>Type an idea below to generate a downloadable Minecraft Bedrock Add-on bundle natively via GitHub Pages.</p>
+    
+    <input type="text" id="prompt" placeholder="e.g., A ruby pickaxe that mines faster...">
+    <button onclick="generateAddon()">Generate & Download Add-on</button>
+    
+    <div id="status"></div>
+</div>
+
+<script>
+async function generateAddon() {
+    const promptText = document.getElementById('prompt').value;
+    const statusDiv = document.getElementById('status');
+    
+    if (!promptText) {
+        statusDiv.innerText = "Please enter an idea first!";
+        return;
+    }
+    
+    statusDiv.innerText = "Contacting AI Model engine...";
+    
+    const systemInstruction = "You are an expert Minecraft Bedrock Add-on developer. Create an asset bundle for the user. Your output must be a single, valid JSON object containing exactly two keys: 'manifest' (the json manifest configuration structure) and 'logic_js' (the script logic file text string). Do not include any extra conversational text or backticks.";
+    
+    try {
+
+        const response = await fetch("https://huggingface.co", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                inputs: `<|system|>\n${systemInstruction}\n<|user|>\nCreate an add-on for: ${promptText}\n<|assistant|>\n`,
+                parameters: { max_new_tokens: 1200, return_full_text: false }
+            })
+        });
+        
+        const data = await response.json();
+        let aiText = data[0].generated_text.trim();
+        
+
+        if (aiText.startsWith("```json")) aiText = aiText.substring(7);
+        if (aiText.startsWith("```")) aiText = aiText.substring(3);
+        if (aiText.endsWith("```")) aiText = aiText.substring(0, aiText.length - 3);
+        
+        statusDiv.innerText = "Parsing asset structures...";
+        const parsedData = JSON.parse(aiText.trim());
+        
+        statusDiv.innerText = "Assembling ZIP file package in browser...";
+        const zip = new JSZip();
+        
+
+        zip.file("manifest.json", JSON.stringify(parsedData.manifest || {}, null, 4));
+        zip.file("main.js", parsedData.logic_js || "// No code generated");
+        
+
+        const content = await zip.generateAsync({ type: "blob" });
+        
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(content);
+        link.download = "custom_mod.mcaddon";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        statusDiv.innerText = "Success! Your add-on has been downloaded.";
+    } catch (error) {
+        statusDiv.innerText = "Error compiling file: " + error.message + ". Try running your request again.";
+        console.error(error);
+    }
+}
+</script>
+
+</body>
+</html>
