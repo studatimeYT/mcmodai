@@ -24,7 +24,6 @@
             padding: 24px 14px;
         }
 
-        /* Hero Header */
         .hero-title {
             font-family: 'Tiempos Headline', 'Georgia', serif;
             font-size: 2.2rem;
@@ -53,7 +52,6 @@
             gap: 16px;
         }
 
-        /* Claude Input Card */
         .claude-card {
             background: #201f1d;
             border: 1px solid #32302d;
@@ -82,7 +80,6 @@
             color: #6a6865;
         }
 
-        /* Responsive Card Toolbar */
         .card-toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -98,7 +95,6 @@
             flex-wrap: wrap;
         }
 
-        /* Mode Capsule Pills */
         .mode-capsule {
             background: #141312;
             border-radius: 8px;
@@ -124,7 +120,6 @@
             color: #ececec;
         }
 
-        /* Dropdown Selectors */
         .toolbar-select {
             background: #141312;
             border: 1px solid #32302d;
@@ -174,7 +169,6 @@
             cursor: not-allowed;
         }
 
-        /* Chat Feed */
         .chat-feed { 
             width: 100%;
             display: flex; 
@@ -256,8 +250,8 @@
         <div class="card-toolbar">
             <div class="toolbar-group">
                 <div class="mode-capsule">
-                    <button class="capsule-btn active" id="tabChat" onclick="setExecutionMode('making')">Chat</button>
-                    <button class="capsule-btn" id="tabCowork" onclick="setExecutionMode('planning')">Cowork</button>
+                    <button class="capsule-btn active" id="tabMake" onclick="setExecutionMode('make')">Make</button>
+                    <button class="capsule-btn" id="tabPlan" onclick="setExecutionMode('plan')">Plan</button>
                 </div>
 
                 <select id="edition" class="toolbar-select platform-badge" title="Target Platform">
@@ -280,12 +274,12 @@
 
 <script>
 const PROXY_URL = "https://mcmodai-proxy.open1862.workers.dev";
-let currentAiMode = "making";
+let currentAiMode = "make";
 
 function setExecutionMode(mode) {
     currentAiMode = mode;
-    document.getElementById('tabChat').classList.toggle('active', mode === 'making');
-    document.getElementById('tabCowork').classList.toggle('active', mode === 'planning');
+    document.getElementById('tabMake').classList.toggle('active', mode === 'make');
+    document.getElementById('tabPlan').classList.toggle('active', mode === 'plan');
 }
 
 function appendLog(sender, text) {
@@ -324,16 +318,16 @@ async function generateMinecraftMod() {
     pipelineBtn.textContent = "Building...";
     
     appendLog('user', promptText);
-    appendLog('system', `Building in ${currentAiMode === 'making' ? 'Build' : 'Cowork'} mode for ${edition.toUpperCase()}...`);
+    appendLog('system', `Building in ${currentAiMode === 'make' ? 'Make' : 'Plan'} mode for ${edition.toUpperCase()}...`);
     
     let systemInstruction = "";
-    if (currentAiMode === "planning") {
-        systemInstruction = `You are a technical mod designer for Minecraft ${edition}. Create a complete architectural plan for the idea. Format as clean Markdown starting with '# Minecraft Mod Blueprint'.`;
+    if (currentAiMode === "plan") {
+        systemInstruction = `You are a technical mod designer for Minecraft ${edition}. Create a complete architectural plan for the user idea. Output clean Markdown starting with '# Minecraft Mod Blueprint'.`;
     } else {
         if (edition === "bedrock") {
-            systemInstruction = "You are an expert Minecraft Bedrock Add-on developer. Output MUST be a single valid JSON object with two keys: 'manifest' (manifest.json content) and 'logic_js' (main script logic text). Do not include markdown formatting.";
+            systemInstruction = "You are an expert Minecraft Bedrock Add-on developer. Output MUST be a single valid JSON object with two keys: 'manifest' (manifest.json object) and 'logic_js' (main script string). Return ONLY JSON.";
         } else {
-            systemInstruction = "You are an expert Minecraft Java data pack generator. Output MUST be a single valid JSON object with two keys: 'pack_mcmeta' (pack.mcmeta content) and 'function_mcfunction' (raw mcfunction commands). Do not include markdown formatting.";
+            systemInstruction = "You are an expert Minecraft Java data pack generator. Output MUST be a single valid JSON object with two keys: 'pack_mcmeta' (pack.mcmeta object) and 'function_mcfunction' (raw mcfunction string). Return ONLY JSON.";
         }
     }
 
@@ -348,9 +342,20 @@ async function generateMinecraftMod() {
             })
         });
 
-        const data = await response.json();
+        const rawText = await response.text();
 
-        if (data && data.error && data.error.includes("loading")) {
+        if (!response.ok) {
+            throw new Error(`Server proxy error (${response.status}): ${rawText.slice(0, 100)}`);
+        }
+
+        let data;
+        try {
+            data = JSON.parse(rawText);
+        } catch (e) {
+            throw new Error(`Invalid non-JSON response received from Cloudflare worker: ${rawText.slice(0, 80)}...`);
+        }
+
+        if (data && data.error && typeof data.error === 'string' && data.error.includes("loading")) {
             appendLog('system', 'WARNING: Model initializing on server grid. Retrying in 6s...');
             setTimeout(generateMinecraftMod, 6000);
             return;
@@ -366,7 +371,7 @@ async function generateMinecraftMod() {
         } else if (data && data.error) {
             throw new Error(data.error);
         } else {
-            throw new Error("Invalid response format received.");
+            throw new Error("Invalid response schema from worker.");
         }
 
         aiText = aiText.trim();
@@ -376,29 +381,38 @@ async function generateMinecraftMod() {
         let downloadName = "";
         let finalBlobContent;
 
-        if (currentAiMode === "planning") {
-            appendLog('system', 'Generating markdown blueprint...');
+        if (currentAiMode === "plan") {
+            appendLog('system', 'Generating markdown blueprint file...');
             finalBlobContent = new Blob([aiText], { type: "text/markdown;charset=utf-8" });
             downloadName = "mod_blueprint.md";
         } else {
-            appendLog('system', 'Extracting package content...');
+            appendLog('system', 'Extracting package assets...');
             const firstBracket = aiText.indexOf('{');
             const lastBracket = aiText.lastIndexOf('}');
 
-            if (firstBracket === -1 || lastBracket === -1) {
-                throw new Error("JSON payload missing from model output.");
+            let parsedData = {};
+            if (firstBracket !== -1 && lastBracket !== -1) {
+                const cleanJsonString = aiText.substring(firstBracket, lastBracket + 1);
+                try {
+                    parsedData = JSON.parse(cleanJsonString);
+                } catch (e) {
+                    appendLog('system', 'WARNING: Fallback packaging engaged due to imperfect model formatting.');
+                }
             }
 
-            const cleanJsonString = aiText.substring(firstBracket, lastBracket + 1);
-            const parsedData = JSON.parse(cleanJsonString);
-
             if (edition === "bedrock") {
-                zip.file("manifest.json", JSON.stringify(parsedData.manifest || {}, null, 4));
-                zip.file("main.js", parsedData.logic_js || "// No logic generated");
+                const manifestData = parsedData.manifest || {
+                    format_version: 2,
+                    header: { name: "AI Generated Addon", description: promptText, uuid: crypto.randomUUID(), version: [1, 0, 0], min_engine_version: [1, 20, 0] },
+                    modules: [{ type: "script", language: "javascript", uuid: crypto.randomUUID(), version: [1, 0, 0] }]
+                };
+                zip.file("manifest.json", JSON.stringify(manifestData, null, 4));
+                zip.file("main.js", parsedData.logic_js || `// Script for ${promptText}\nconsole.warn("Generated addon initialized.");`);
                 downloadName = "custom_addon.mcaddon";
             } else {
-                zip.file("pack.mcmeta", JSON.stringify(parsedData.pack_mcmeta || { "pack": { "pack_format": 48, "description": "AI Generated Data Pack" } }, null, 4));
-                zip.file("data/custom/functions/main.mcfunction", parsedData.function_mcfunction || "# No command logic generated");
+                const mcmetaData = parsedData.pack_mcmeta || { pack: { pack_format: 48, description: promptText } };
+                zip.file("pack.mcmeta", JSON.stringify(mcmetaData, null, 4));
+                zip.file("data/custom/functions/main.mcfunction", parsedData.function_mcfunction || `# Generated function for ${promptText}\nsay Data Pack Activated!`);
                 downloadName = "java_datapack.zip";
             }
 
