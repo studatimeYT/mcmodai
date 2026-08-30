@@ -5,27 +5,167 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⛏️ Orca-Style MC AI Mod Maker</title>
     <!-- Include JSZip to bundle packages inside the browser -->
-    <script src="https://cloudflare.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; text-align: center; padding: 20px; margin: 0; }
-        .container { max-width: 700px; margin: 0 auto; background: #1e1e1e; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: left; margin-bottom: 20px; }
-        h2 { text-align: center; color: #ff6f00; margin-top: 0; }
-        label { font-weight: bold; display: block; margin-top: 15px; color: #bbb; }
-        select, input[type="text"] { width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box; font-size: 14px; }
-        .radio-group { display: flex; gap: 20px; margin-top: 5px; margin-bottom: 15px; }
-        .radio-option { background: #2a2a2a; padding: 12px; border-radius: 4px; border: 1px solid #333; flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .radio-option input { cursor: pointer; }
-        button { background-color: #ff6f00; color: white; padding: 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; }
-        button:hover { background-color: #e65100; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #121212; 
+            color: #ffffff; 
+            text-align: center; 
+            padding: 20px; 
+            margin: 0; 
+        }
+        .container { 
+            max-width: 700px; 
+            margin: 0 auto 20px auto; 
+            background: #1e1e1e; 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            text-align: left; 
+        }
+        h2 { 
+            text-align: center; 
+            color: #ff6f00; 
+            margin-top: 0; 
+        }
+        label { 
+            font-weight: bold; 
+            display: block; 
+            margin-top: 15px; 
+            color: #bbb; 
+        }
+        select, input[type="text"], input[type="password"] { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 5px; 
+            margin-bottom: 15px; 
+            border-radius: 4px; 
+            border: 1px solid #333; 
+            background: #2a2a2a; 
+            color: #fff; 
+            box-sizing: border-box; 
+            font-size: 14px; 
+        }
+        .radio-group { 
+            display: flex; 
+            gap: 20px; 
+            margin-top: 5px; 
+            margin-bottom: 15px; 
+        }
+        .radio-option { 
+            background: #2a2a2a; 
+            padding: 12px; 
+            border-radius: 4px; 
+            border: 1px solid #333; 
+            flex: 1; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            cursor: pointer; 
+        }
+        .radio-option input { 
+            cursor: pointer; 
+        }
+        button { 
+            background-color: #ff6f00; 
+            color: white; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold; 
+            width: 100%; 
+            margin-top: 10px; 
+        }
+        button:hover { 
+            background-color: #e65100; 
+        }
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .clear-btn { 
+            background-color: #444; 
+            color: #aaa; 
+            padding: 8px 16px; 
+            font-size: 12px; 
+            border-radius: 4px; 
+            width: auto; 
+            margin-top: 10px; 
+            float: right; 
+        }
+        .clear-btn:hover { 
+            background-color: #555; 
+            color: #fff; 
+        }
         
         /* Orca System Chat Interface Styles */
-        .chat-container { max-width: 700px; margin: 0 auto; background: #1e1e1e; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: left; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-header { background: #ff6f00; color: #fff; padding: 12px 20px; font-weight: bold; font-size: 16px; }
-        .chat-log { height: 350px; overflow-y: auto; padding: 20px; background: #151515; display: flex; flex-direction: column; gap: 15px; }
-        .message { padding: 12px 16px; border-radius: 6px; max-width: 85%; line-height: 1.5; word-wrap: break-word; font-size: 14px; }
-        .message.user { background: #2a2a2a; color: #fff; align-self: flex-end; border-bottom-right-radius: 0; }
-        .message.ai { background: #ff6f0022; color: #fff; align-self: flex-start; border-bottom-left-radius: 0; border-left: 4px solid #ff6f00; white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; }
-        .message.system { background: #222; color: #00ff66; align-self: center; font-family: monospace; font-size: 12px; max-width: 95%; text-align: left; border-left: 3px solid #00ff66; width: 100%; padding: 8px; box-sizing: border-box; }
+        .chat-container { 
+            max-width: 700px; 
+            margin: 0 auto; 
+            background: #1e1e1e; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            text-align: left; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            clear: both; 
+        }
+        .chat-header { 
+            background: #ff6f00; 
+            color: #fff; 
+            padding: 12px 20px; 
+            font-weight: bold; 
+            font-size: 16px; 
+        }
+        .chat-log { 
+            height: 350px; 
+            overflow-y: auto; 
+            padding: 20px; 
+            background: #151515; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+        }
+        .message { 
+            padding: 12px 16px; 
+            border-radius: 6px; 
+            max-width: 85%; 
+            line-height: 1.5; 
+            word-wrap: break-word; 
+            font-size: 14px; 
+        }
+        .message.user { 
+            background: #2a2a2a; 
+            color: #fff; 
+            align-self: flex-end; 
+            border-bottom-right-radius: 0; 
+        }
+        .message.ai { 
+            background: #ff6f0022; 
+            color: #fff; 
+            align-self: flex-start; 
+            border-bottom-left-radius: 0; 
+            border-left: 4px solid #ff6f00; 
+            white-space: pre-wrap; 
+            font-family: 'Courier New', Courier, monospace; 
+        }
+        .message.system { 
+            background: #222; 
+            color: #00ff66; 
+            align-self: center; 
+            font-family: monospace; 
+            font-size: 12px; 
+            max-width: 95%; 
+            text-align: left; 
+            border-left: 3px solid #00ff66; 
+            width: 100%; 
+            padding: 8px; 
+            box-sizing: border-box; 
+        }
     </style>
 </head>
 <body>
@@ -33,6 +173,9 @@
 <div class="container">
     <h2>⛏️ Orca-Style MC AI Mod Maker</h2>
     
+    <label for="hftoken">🔑 Secure Hugging Face Access Token:</label>
+    <input type="password" id="hftoken" placeholder="Paste your hf_ token here...">
+
     <label>1. Select AI Execution Mode:</label>
     <div class="radio-group">
         <div class="radio-option" onclick="document.getElementById('mode_plan').checked=true">
@@ -59,17 +202,18 @@
 
     <label for="model">3. Choose AI Engine:</label>
     <select id="model">
-        <option value="Qwen/Qwen2.5-Coder-32B-Instruct">Qwen 2.5 Coder (Fast Generation)</option>
-        <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B (Complex Logic)</option>
+        <option value="Qwen/Qwen2.5-Coder-32B-Instruct">Qwen 2.5 Coder (Recommended for Coding)</option>
+        <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B (Complex Logic Evaluation)</option>
     </select>
 
     <label for="prompt">4. Describe Your Mod Idea:</label>
-    <input type="text" id="prompt" placeholder="e.g., A ruby pickaxe that creates explosions when mining diamond ore...">
+    <input type="text" id="prompt" placeholder="e.g., A lightning sword that creates explosions around targets...">
     
-    <button onclick="generateMinecraftMod()">Run AI Pipeline</button>
+    <button id="pipelineBtn" onclick="generateMinecraftMod()">Run AI Pipeline</button>
+    <button class="clear-btn" onclick="clearLog()">Wipe Console Records</button>
 </div>
 
-<!-- Chat Log Dashboard Component -->
+<!-- Streaming Log History Component -->
 <div class="chat-container">
     <div class="chat-header">🤖 Orca Live Pipeline Log Output</div>
     <div class="chat-log" id="chatLog">
@@ -84,22 +228,35 @@ function appendLog(sender, text) {
     msgDiv.classList.add('message', sender);
     msgDiv.textContent = sender === 'system' ? `[SYSTEM]: ${text}` : text;
     chatLog.appendChild(msgDiv);
-    chatLog.scrollTop = chatLog.scrollHeight; // Auto-scroll to bottom
+    chatLog.scrollTop = chatLog.scrollHeight; 
+}
+
+function clearLog() {
+    document.getElementById('chatLog').innerHTML = '<div class="message system">[SYSTEM]: Terminal log history cleared cleanly. Ready for task payload.</div>';
 }
 
 async function generateMinecraftMod() {
+    const hfToken = document.getElementById('hftoken').value.trim();
     const aiMode = document.querySelector('input[name="aimode"]:checked').value;
     const edition = document.getElementById('edition').value;
     const modelEndpoint = document.getElementById('model').value;
-    const promptText = document.getElementById('prompt').value;
+    const promptText = document.getElementById('prompt').value.trim();
+    const pipelineBtn = document.getElementById('pipelineBtn');
     
+    if (!hfToken) {
+        appendLog('system', 'ERROR: Security Token Required. Please paste your token from huggingface.co into the input box.');
+        return;
+    }
     if (!promptText) {
         appendLog('system', 'ERROR: Input text parameter required.');
         return;
     }
     
+    pipelineBtn.disabled = true;
+    pipelineBtn.textContent = "Processing Stream Pipeline...";
+    
     appendLog('user', `[Mode: ${aiMode.toUpperCase()} | Edition: ${edition.toUpperCase()}] ${promptText}`);
-    appendLog('system', `Routing compilation packet through CORS security channels...`);
+    appendLog('system', `Routing command payload directly to cloud arrays...`);
     
     let systemInstruction = "";
     if (aiMode === "planning") {
@@ -112,40 +269,41 @@ async function generateMinecraftMod() {
         }
     }
     
-    // Set up endpoint wrapped inside an open CORS proxy pipeline
-    const targetUrl = `https://huggingface.co{modelEndpoint}`;
-    const proxyUrl = `https://allorigins.win{encodeURIComponent(targetUrl)}`;
-    
     try {
-        const response = await fetch(proxyUrl, {
+        const response = await fetch(`https://api-inference.huggingface.co/models/${modelEndpoint}`, {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${hfToken}`
+            },
             body: JSON.stringify({
                 inputs: `<|system|>\n${systemInstruction}\n<|user|>\nCreate a ${edition} mod asset package for: ${promptText}\n<|assistant|>\n`,
                 parameters: { max_new_tokens: 1200, return_full_text: false }
             })
         });
         
-        if (!response.ok) throw new Error("Network pipeline response mismatch.");
+        const data = await response.json();
         
-        const wrapperData = await response.json();
-        // Extract out raw network response text
-        const rawJsonData = JSON.parse(wrapperData.contents);
-        
-        if (rawJsonData && rawJsonData.error && rawJsonData.error.includes("loading")) {
-            appendLog('system', 'WARNING: AI cluster initializing. Executing automatic server synchronization in 6 seconds...');
+        if (data && data.error && data.error.includes("loading")) {
+            appendLog('system', 'WARNING: AI cluster initializing on cloud grids. Executing automated pipeline sync in 6 seconds...');
             setTimeout(generateMinecraftMod, 6000);
             return;
         }
 
-        let aiText = rawJsonData.generated_text || (Array.isArray(rawJsonData) && rawJsonData[0]?.generated_text);
-        if (!aiText && rawJsonData && typeof rawJsonData === 'object') aiText = rawJsonData[0]?.generated_text || JSON.stringify(rawJsonData);
-        
-        if (!aiText) throw new Error("Empty token buffer layout. Click run again to send clean pulse.");
+        let aiText = "";
+        if (Array.isArray(data) && data[0] && data[0].generated_text) {
+            aiText = data[0].generated_text;
+        } else if (data && data.generated_text) {
+            aiText = data.generated_text;
+        } else if (data && data.error) {
+            throw new Error(data.error);
+        } else {
+            throw new Error("Invalid response structural format from cloud server.");
+        }
+
         aiText = aiText.trim();
-        
-        // Render text output cleanly inside Orca Chat log
         appendLog('ai', aiText);
-        
+
         const zip = new JSZip();
         let downloadName = "";
         let finalBlobContent;
@@ -155,9 +313,50 @@ async function generateMinecraftMod() {
             finalBlobContent = new Blob([aiText], { type: "text/markdown;charset=utf-8" });
             downloadName = "mod_development_plan.md";
         } else {
-            appendLog('system', 'Extracting structural blocks out of text content payload array...');
+            appendLog('system', 'Extracting json parameter bracket boundaries out of string array...');
             const firstBracket = aiText.indexOf('{');
             const lastBracket = aiText.lastIndexOf('}');
+
             if (firstBracket === -1 || lastBracket === -1) {
-                throw new Error("Target missing JSON structure wrappers. Re-executing pipeline recommended.");
+                throw new Error("Target missing JSON structure wrappers. Try typing a simpler prompt request.");
             }
+
+            const cleanJsonString = aiText.substring(firstBracket, lastBracket + 1);
+            const parsedData = JSON.parse(cleanJsonString);
+
+            appendLog('system', 'Injecting functional assets inside virtual browser directory blocks...');
+            if (edition === "bedrock") {
+                zip.file("manifest.json", JSON.stringify(parsedData.manifest || {}, null, 4));
+                zip.file("main.js", parsedData.logic_js || "// No bedrock logic generated");
+                downloadName = "custom_addon.mcaddon";
+            } else {
+                zip.file("pack.mcmeta", JSON.stringify(parsedData.pack_mcmeta || { "pack": { "pack_format": 48, "description": "AI Generated Data Pack" } }, null, 4));
+                zip.file("data/custom/functions/main.mcfunction", parsedData.function_mcfunction || "# No command logic generated");
+                downloadName = "java_datapack.zip";
+            }
+
+            finalBlobContent = await zip.generateAsync({ type: "blob" });
+        }
+
+        appendLog('system', `Compilation complete. Launching file transfer downstream: ${downloadName}`);
+        
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(finalBlobContent);
+        link.download = downloadName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        appendLog('system', 'SUCCESS: Pipeline sequence cleanly completed.');
+    } catch (error) {
+        appendLog('system', `CRASH ERROR: ${error.message} - Ensure your token is correct and click Run again.`);
+        console.error(error);
+    } finally {
+        pipelineBtn.disabled = false;
+        pipelineBtn.textContent = "Run AI Pipeline";
+    }
+}
+</script>
+
+</body>
+</html>
