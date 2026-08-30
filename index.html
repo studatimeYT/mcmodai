@@ -45,7 +45,7 @@
 
         .workspace {
             width: 100%;
-            max-width: 720px;
+            max-width: 760px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -85,6 +85,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
         }
 
         .toolbar-left {
@@ -135,26 +136,37 @@
         .toolbar-right {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .model-select {
-            background: transparent;
-            border: none;
-            color: #8c8883;
-            font-size: 13.5px;
+        /* Prominent Platform & Model Selectors */
+        .toolbar-select {
+            background: #141312;
+            border: 1px solid #32302d;
+            color: #ececec;
+            font-size: 12.5px;
             font-family: inherit;
+            font-weight: 500;
             cursor: pointer;
             outline: none;
-            padding: 4px 6px;
-            border-radius: 6px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: border-color 0.15s, background 0.15s;
         }
 
-        .model-select:hover {
-            color: #ffffff;
+        .toolbar-select:hover {
+            border-color: #d96e43;
+            background: #1c1b19;
         }
 
-        .model-select option {
+        .toolbar-select.platform-badge {
+            background: #2b231f;
+            border-color: #d96e43;
+            color: #f5a682;
+            font-weight: 600;
+        }
+
+        .toolbar-select option {
             background: #201f1d;
             color: #ffffff;
         }
@@ -198,42 +210,7 @@
             cursor: not-allowed;
         }
 
-        /* Hidden Settings Drawer */
-        .settings-drawer {
-            display: none;
-            background: #1c1b19;
-            border: 1px solid #32302d;
-            border-radius: 12px;
-            padding: 14px 18px;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        .settings-drawer.open {
-            display: grid;
-        }
-
-        .drawer-group label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #6a6865;
-            margin-bottom: 6px;
-        }
-
-        .drawer-select {
-            width: 100%;
-            background: #252422;
-            border: 1px solid #32302d;
-            color: #fff;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            outline: none;
-        }
-
-        /* Conversational Chat Feed matching reference screenshot */
+        /* Conversational Chat Feed */
         .chat-feed { 
             width: 100%;
             display: flex; 
@@ -242,7 +219,6 @@
             margin-bottom: 10px;
         }
 
-        /* User Message Pill (Right Aligned Dark Bubble) */
         .message-row.user {
             display: flex;
             justify-content: flex-end;
@@ -262,7 +238,6 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
 
-        /* AI Message (Left Aligned Plain Text Layout) */
         .message-row.ai {
             display: flex;
             justify-content: flex-start;
@@ -280,7 +255,6 @@
             font-family: inherit;
         }
 
-        /* System Messages / Logs */
         .message-row.system {
             display: flex;
             justify-content: center;
@@ -308,7 +282,7 @@
 <div class="workspace">
     <div class="chat-feed" id="chatFeed">
         <div class="message-row system">
-            <div class="bubble">[SYSTEM]: Ready. Enter mod prompt below to generate assets...</div>
+            <div class="bubble">[SYSTEM]: Ready. Choose your target platform below and enter a prompt to generate assets.</div>
         </div>
     </div>
 
@@ -325,7 +299,12 @@
             </div>
 
             <div class="toolbar-right">
-                <select id="model" class="model-select">
+                <select id="edition" class="toolbar-select platform-badge" title="Target Platform">
+                    <option value="bedrock">🎮 Bedrock (.mcaddon)</option>
+                    <option value="java">☕ Java (Data Pack ZIP)</option>
+                </select>
+
+                <select id="model" class="toolbar-select" title="AI Model">
                     <option value="Qwen/Qwen2.5-Coder-32B-Instruct">Sonnet 5 Medium</option>
                     <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B</option>
                 </select>
@@ -333,23 +312,8 @@
                 <button class="icon-btn" title="Voice Input">
                     🎙️ <span style="font-size: 10px; opacity: 0.6;">∨</span>
                 </button>
-                <button class="icon-btn" onclick="toggleSettings()" title="Settings">⚙️</button>
                 <button id="pipelineBtn" class="send-btn" onclick="generateMinecraftMod()">Run</button>
             </div>
-        </div>
-    </div>
-
-    <div class="settings-drawer" id="settingsDrawer">
-        <div class="drawer-group">
-            <label for="edition">Target Platform</label>
-            <select id="edition" class="drawer-select">
-                <option value="bedrock">Bedrock Edition (.mcaddon)</option>
-                <option value="java">Java Edition (Data Pack ZIP)</option>
-            </select>
-        </div>
-        <div class="drawer-group">
-            <label>Current Mode</label>
-            <input type="text" id="selectedModeDisplay" class="drawer-select" value="Chat Mode (Compile .zip assets)" readonly style="opacity: 0.7;">
         </div>
     </div>
 </div>
@@ -362,12 +326,6 @@ function setExecutionMode(mode) {
     currentAiMode = mode;
     document.getElementById('tabChat').classList.toggle('active', mode === 'making');
     document.getElementById('tabCowork').classList.toggle('active', mode === 'planning');
-    document.getElementById('selectedModeDisplay').value = mode === 'making' ? 'Chat Mode (Compile .zip assets)' : 'Cowork Mode (Generate blueprint .md)';
-}
-
-function toggleSettings() {
-    const drawer = document.getElementById('settingsDrawer');
-    drawer.classList.toggle('open');
 }
 
 function appendLog(sender, text) {
@@ -406,7 +364,7 @@ async function generateMinecraftMod() {
     pipelineBtn.textContent = "Building...";
     
     appendLog('user', promptText);
-    appendLog('system', `Sending payload packet to Cloudflare Worker proxy...`);
+    appendLog('system', `Building for target platform: ${edition.toUpperCase()}...`);
     
     let systemInstruction = "";
     if (currentAiMode === "planning") {
@@ -474,7 +432,7 @@ async function generateMinecraftMod() {
             const cleanJsonString = aiText.substring(firstBracket, lastBracket + 1);
             const parsedData = JSON.parse(cleanJsonString);
 
-            appendLog('system', 'Archiving output assets...');
+            appendLog('system', `Archiving assets for ${edition.toUpperCase()} package...`);
             if (edition === "bedrock") {
                 zip.file("manifest.json", JSON.stringify(parsedData.manifest || {}, null, 4));
                 zip.file("main.js", parsedData.logic_js || "// No logic generated");
