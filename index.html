@@ -344,21 +344,24 @@ async function generateMinecraftMod() {
 
         const rawText = await response.text();
 
-        if (!response.ok) {
-            throw new Error(`Server proxy error (${response.status}): ${rawText.slice(0, 100)}`);
+        if (!rawText || rawText.trim() === "") {
+            throw new Error("Worker endpoint returned an empty payload. Ensure your Worker script is published and HF_TOKEN is valid.");
         }
 
         let data;
         try {
             data = JSON.parse(rawText);
         } catch (e) {
-            throw new Error(`Invalid non-JSON response received from Cloudflare worker: ${rawText.slice(0, 80)}...`);
+            throw new Error(`Worker returned invalid raw payload: ${rawText.slice(0, 100)}`);
         }
 
-        if (data && data.error && typeof data.error === 'string' && data.error.includes("loading")) {
-            appendLog('system', 'WARNING: Model initializing on server grid. Retrying in 6s...');
-            setTimeout(generateMinecraftMod, 6000);
-            return;
+        if (data && data.error) {
+            if (typeof data.error === 'string' && data.error.includes("loading")) {
+                appendLog('system', 'WARNING: Model initializing on server grid. Retrying in 6s...');
+                setTimeout(generateMinecraftMod, 6000);
+                return;
+            }
+            throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
         }
 
         let aiText = "";
@@ -368,10 +371,8 @@ async function generateMinecraftMod() {
             aiText = data[0].generated_text;
         } else if (data && data.generated_text) {
             aiText = data.generated_text;
-        } else if (data && data.error) {
-            throw new Error(data.error);
         } else {
-            throw new Error("Invalid response schema from worker.");
+            throw new Error("Invalid response format received from AI model.");
         }
 
         aiText = aiText.trim();
@@ -396,7 +397,7 @@ async function generateMinecraftMod() {
                 try {
                     parsedData = JSON.parse(cleanJsonString);
                 } catch (e) {
-                    appendLog('system', 'WARNING: Fallback packaging engaged due to imperfect model formatting.');
+                    appendLog('system', 'WARNING: Fallback packaging engaged due to raw model output.');
                 }
             }
 
