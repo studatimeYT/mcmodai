@@ -3,281 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⛏️ Minecraft Addon Maker</title>
+    <title>mcmodai</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #121212; 
-            color: #ffffff; 
-            margin: 0; 
-            padding: 40px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            background-color: #141312; 
+            color: #ececec; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 80vh;
+            min-height: 100vh;
+            padding: 20px;
         }
-        
-        .welcome-title {
-            font-size: 2.2rem;
+
+        /* Hero Header Matching Screenshot */
+        .hero-title {
+            font-family: 'Tiempos Headline', 'Georgia', 'Times New Roman', serif;
+            font-size: 2.8rem;
             font-weight: 400;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 14px;
             justify-content: center;
+            color: #f0eee9;
+            letter-spacing: -0.5px;
         }
 
-        .welcome-title span {
-            color: #ff6f00;
+        .hero-title .asterisk {
+            color: #d96e43;
+            font-size: 2.6rem;
+            line-height: 1;
         }
 
-        .container { 
+        /* Main Workspace Container */
+        .workspace {
             width: 100%;
-            max-width: 750px; 
-            background: #1e1e1e; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4); 
-            text-align: left; 
-            box-sizing: border-box;
-            border: 1px solid #2d2d2d;
+            max-width: 680px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        label { 
-            font-weight: 600; 
-            display: block; 
-            margin-top: 15px; 
-            color: #bbb;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        /* Claude Pill Input Box Container */
+        .claude-card {
+            background: #201f1d;
+            border: 1px solid #32302d;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        select, input[type="text"] { 
-            width: 100%; 
-            padding: 14px; 
-            margin-top: 6px; 
-            margin-bottom: 12px; 
-            border-radius: 6px; 
-            border: 1px solid #333; 
-            background: #2a2a2a; 
-            color: #fff; 
-            box-sizing: border-box; 
-            font-size: 14px; 
-            transition: border-color 0.2s;
-        }
-
-        select:focus, input[type="text"]:focus {
+        .prompt-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
             outline: none;
-            border-color: #ff6f00;
+            min-height: 44px;
+            line-height: 1.5;
         }
 
-        .radio-group { 
-            display: flex; 
-            gap: 15px; 
-            margin-top: 6px; 
-            margin-bottom: 12px; 
+        .prompt-input::placeholder {
+            color: #6a6865;
         }
 
-        .radio-option { 
-            background: #2a2a2a; 
-            padding: 14px; 
-            border-radius: 6px; 
-            border: 1px solid #333; 
-            flex: 1; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            cursor: pointer; 
-            transition: background 0.2s, border-color 0.2s;
+        /* Bottom Action Bar */
+        .card-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .radio-option:hover {
-            background: #333;
-            border-color: #444;
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .radio-option input { 
-            cursor: pointer; 
-            accent-color: #ff6f00;
+        .plus-btn {
+            background: transparent;
+            border: none;
+            color: #8c8883;
+            font-size: 20px;
+            font-weight: 300;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            line-height: 1;
         }
 
-        button { 
-            background-color: #ff6f00; 
-            color: white; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: bold; 
-            width: 100%; 
-            margin-top: 10px; 
-            transition: background-color 0.2s;
+        .plus-btn:hover {
+            color: #ffffff;
         }
 
-        button:hover { 
-            background-color: #e65100; 
+        /* Mode Selector Pills */
+        .mode-capsule {
+            background: #141312;
+            border-radius: 8px;
+            padding: 3px;
+            display: flex;
+            gap: 2px;
         }
 
-        button:disabled { 
-            background-color: #555; 
-            cursor: not-allowed; 
+        .capsule-btn {
+            background: transparent;
+            border: none;
+            color: #6a6865;
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
         }
 
-        .clear-btn { 
-            background-color: transparent; 
-            color: #888; 
-            padding: 6px 12px; 
-            font-size: 11px; 
-            border-radius: 4px; 
-            width: auto; 
-            margin-top: 10px; 
-            float: right; 
-            border: 1px solid #333;
+        .capsule-btn.active {
+            background: #2d2b28;
+            color: #ececec;
+        }
+
+        /* Right Actions Toolbar */
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #8c8883;
+        }
+
+        .model-picker {
+            background: transparent;
+            border: none;
+            color: #8c8883;
+            font-size: 13.5px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+
+        .model-picker:hover {
+            color: #ffffff;
+        }
+
+        .model-picker option {
+            background: #201f1d;
+            color: #ffffff;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: #8c8883;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .icon-btn:hover {
+            color: #ffffff;
+        }
+
+        .send-btn {
+            background: #d96e43;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 4px;
+            transition: background 0.15s;
+        }
+
+        .send-btn:hover {
+            background: #c05d34;
+        }
+
+        .send-btn:disabled {
+            background: #33312e;
+            color: #6a6865;
+            cursor: not-allowed;
+        }
+
+        /* Hidden Platform Settings Drawer */
+        .settings-drawer {
+            display: none;
+            background: #1c1b19;
+            border: 1px solid #32302d;
+            border-radius: 12px;
+            padding: 14px 18px;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .settings-drawer.open {
+            display: grid;
+        }
+
+        .drawer-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
             text-transform: uppercase;
-        }
-
-        .clear-btn:hover { 
-            background-color: #2a2a2a; 
-            color: #fff; 
-            border-color: #555;
-        }
-
-        /* Chat System Log Window Interface */
-        .chat-container { 
-            width: 100%;
-            max-width: 750px; 
-            background: #1e1e1e; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4); 
-            text-align: left; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            clear: both; 
-            margin-top: 25px;
-            border: 1px solid #2d2d2d;
-            box-sizing: border-box;
-        }
-
-        .chat-header { 
-            background: #252525; 
-            color: #fff; 
-            padding: 12px 20px; 
-            font-weight: 600; 
-            font-size: 14px; 
-            border-bottom: 1px solid #2d2d2d;
+            color: #6a6865;
+            margin-bottom: 6px;
             letter-spacing: 0.5px;
         }
 
-        .chat-log { 
-            height: 300px; 
+        .drawer-select {
+            width: 100%;
+            background: #252422;
+            border: 1px solid #32302d;
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        /* Output Terminal Log */
+        .terminal-box { 
+            width: 100%;
+            background: #201f1d; 
+            border-radius: 12px; 
+            border: 1px solid #32302d;
+            overflow: hidden; 
+        }
+
+        .terminal-header { 
+            background: #141312; 
+            color: #8c8883; 
+            padding: 10px 16px; 
+            font-size: 12px; 
+            font-weight: 600;
+            border-bottom: 1px solid #292825;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: #6a6865;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .clear-btn:hover {
+            color: #ffffff;
+        }
+
+        .terminal-log { 
+            height: 180px; 
             overflow-y: auto; 
-            padding: 20px; 
-            background: #141414; 
+            padding: 14px; 
+            background: #100f0e; 
             display: flex; 
             flex-direction: column; 
-            gap: 15px; 
+            gap: 10px; 
         }
 
         .message { 
-            padding: 12px 16px; 
+            padding: 8px 12px; 
             border-radius: 8px; 
-            max-width: 85%; 
-            line-height: 1.6; 
+            max-width: 90%; 
+            line-height: 1.5; 
             word-wrap: break-word; 
-            font-size: 14px; 
+            font-size: 13px; 
         }
 
         .message.user { 
-            background: #ff6f00; 
-            color: #fff; 
+            background: #d96e43; 
+            color: #ffffff; 
             align-self: flex-end; 
-            border-bottom-right-radius: 0; 
         }
 
         .message.ai { 
-            background: #222; 
-            color: #fff; 
+            background: #201f1d; 
+            color: #ececec; 
             align-self: flex-start; 
-            border-bottom-left-radius: 0; 
-            border: 1px solid #333;
+            border: 1px solid #32302d;
             white-space: pre-wrap; 
             font-family: 'Courier New', Courier, monospace; 
         }
 
         .message.system { 
-            background: #1a1a1a; 
-            color: #00ff66; 
+            background: #18221b; 
+            color: #4ade80; 
             align-self: center; 
             font-family: monospace; 
-            font-size: 12px; 
-            max-width: 100%; 
-            text-align: left; 
-            border-left: 3px solid #00ff66; 
+            font-size: 11px; 
             width: 100%; 
-            padding: 10px; 
-            box-sizing: border-box; 
+            border-left: 3px solid #4ade80; 
         }
     </style>
 </head>
 <body>
 
-<div class="welcome-title">
-    <span>✴</span> Good afternoon, studatimeYT
+<div class="hero-title">
+    <span class="asterisk">✴</span> Good afternoon, studatimeYT
 </div>
 
-<div class="container">
-    <label>1. Select AI Execution Mode:</label>
-    <div class="radio-group">
-        <div class="radio-option" onclick="document.getElementById('mode_plan').checked=true">
-            <input type="radio" id="mode_plan" name="aimode" value="planning">
-            <div>
-                <strong>Planning Mode</strong><br>
-                <small style="color:#888">Generates architecture blueprints (.md)</small>
+<div class="workspace">
+    <div class="claude-card">
+        <textarea id="prompt" class="prompt-input" rows="2" placeholder="How can I help you today?"></textarea>
+        
+        <div class="card-toolbar">
+            <div class="toolbar-left">
+                <button class="plus-btn" title="Add file">+</button>
+                <div class="mode-capsule">
+                    <button class="capsule-btn active" id="tabChat" onclick="setExecutionMode('making')">Chat</button>
+                    <button class="capsule-btn" id="tabCowork" onclick="setExecutionMode('planning')">Cowork</button>
+                </div>
             </div>
-        </div>
-        <div class="radio-option" onclick="document.getElementById('mode_make').checked=true">
-            <input type="radio" id="mode_make" name="aimode" value="making" checked>
-            <div>
-                <strong>Making Mode</strong><br>
-                <small style="color:#888">Compiles installation assets (.zip)</small>
+
+            <div class="toolbar-right">
+                <select id="model" class="model-picker">
+                    <option value="Qwen/Qwen2.5-Coder-32B-Instruct">Sonnet 5 Medium</option>
+                    <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B</option>
+                </select>
+                <button class="icon-btn" title="Voice Input">
+                    🎙️ <span style="font-size: 10px; opacity: 0.6;">∨</span>
+                </button>
+                <button class="icon-btn" onclick="toggleSettings()" title="Settings">⚙️</button>
+                <button id="pipelineBtn" class="send-btn" onclick="generateMinecraftMod()">Run</button>
             </div>
         </div>
     </div>
 
-    <label for="edition">2. Select Minecraft Edition:</label>
-    <select id="edition">
-        <option value="bedrock">Bedrock Edition (.mcaddon Addon)</option>
-        <option value="java">Java Edition (Data Pack / Config Source ZIP)</option>
-    </select>
+    <div class="settings-drawer" id="settingsDrawer">
+        <div class="drawer-group">
+            <label for="edition">Target Platform</label>
+            <select id="edition" class="drawer-select">
+                <option value="bedrock">Bedrock Edition (.mcaddon)</option>
+                <option value="java">Java Edition (Data Pack ZIP)</option>
+            </select>
+        </div>
+        <div class="drawer-group">
+            <label>Pipeline Mode</label>
+            <input type="text" id="selectedModeDisplay" class="drawer-select" value="Chat Mode (Compile .zip assets)" readonly style="opacity: 0.7;">
+        </div>
+    </div>
 
-    <label for="model">3. Choose AI Engine:</label>
-    <select id="model">
-        <option value="Qwen/Qwen2.5-Coder-32B-Instruct">Qwen 2.5 Coder (Recommended for Coding)</option>
-        <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B (Complex Logic Evaluation)</option>
-    </select>
-
-    <label for="prompt">4. Describe Your Mod Idea:</label>
-    <input type="text" id="prompt" placeholder="How can I help you today?">
-    
-    <button id="pipelineBtn" onclick="generateMinecraftMod()">Run AI Pipeline</button>
-    <button class="clear-btn" onclick="clearLog()">Wipe Console Records</button>
-</div>
-
-<div class="chat-container">
-    <div class="chat-header">🤖 Live Pipeline Log Output</div>
-    <div class="chat-log" id="chatLog">
-        <div class="message system">[SYSTEM]: Core engine listening. Set configurations above and push execution packet...</div>
+    <div class="terminal-box">
+        <div class="terminal-header">
+            <span>🤖 Build Status Output</span>
+            <button class="clear-btn" onclick="clearLog()">Clear Log</button>
+        </div>
+        <div class="terminal-log" id="chatLog">
+            <div class="message system">[SYSTEM]: System idle. Enter mod details above to generate assets...</div>
+        </div>
     </div>
 </div>
 
 <script>
-// REPLACE WITH YOUR WORKER URL
-const PROXY_URL = "https://workers.dev";
+// YOUR CLOUDFLARE WORKER URL PRE-CONNECTED:
+const PROXY_URL = "https://mcmodai-proxy.open1862.workers.dev";
+let currentAiMode = "making";
+
+function setExecutionMode(mode) {
+    currentAiMode = mode;
+    document.getElementById('tabChat').classList.toggle('active', mode === 'making');
+    document.getElementById('tabCowork').classList.toggle('active', mode === 'planning');
+    document.getElementById('selectedModeDisplay').value = mode === 'making' ? 'Chat Mode (Compile .zip assets)' : 'Cowork Mode (Generate blueprint .md)';
+}
+
+function toggleSettings() {
+    const drawer = document.getElementById('settingsDrawer');
+    drawer.classList.toggle('open');
+}
 
 function appendLog(sender, text) {
     const chatLog = document.getElementById('chatLog');
@@ -289,11 +405,17 @@ function appendLog(sender, text) {
 }
 
 function clearLog() {
-    document.getElementById('chatLog').innerHTML = '<div class="message system">[SYSTEM]: Terminal log history cleared cleanly. Ready for task payload.</div>';
+    document.getElementById('chatLog').innerHTML = '<div class="message system">[SYSTEM]: Logs cleared. Ready.</div>';
 }
 
+document.getElementById('prompt').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        generateMinecraftMod();
+    }
+});
+
 async function generateMinecraftMod() {
-    const aiMode = document.querySelector('input[name="aimode"]:checked').value;
     const edition = document.getElementById('edition').value;
     const modelEndpoint = document.getElementById('model').value;
     const promptText = document.getElementById('prompt').value.trim();
@@ -305,19 +427,19 @@ async function generateMinecraftMod() {
     }
     
     pipelineBtn.disabled = true;
-    pipelineBtn.textContent = "Processing Stream Pipeline...";
+    pipelineBtn.textContent = "Building...";
     
-    appendLog('user', `[Mode: ${aiMode.toUpperCase()} | Edition: ${edition.toUpperCase()}] ${promptText}`);
-    appendLog('system', `Routing command payload directly to cloud arrays...`);
+    appendLog('user', `[Mode: ${currentAiMode.toUpperCase()} | Edition: ${edition.toUpperCase()}] ${promptText}`);
+    appendLog('system', `Sending packet payload to cloud worker proxy...`);
     
     let systemInstruction = "";
-    if (aiMode === "planning") {
-        systemInstruction = `You are a professional technical designer for Minecraft ${edition} mods. Create a detailed development and architecture plan for the user's idea. Break down the folder structure, listing all necessary files and give an explanation of how to program the logic block-by-block. Output your result directly as a beautiful, comprehensive, clean Markdown text file layout. Do not wrap the output in json or markdown code blocks. Start your response directly with the title '# Minecraft Mod Blueprint'.`;
+    if (currentAiMode === "planning") {
+        systemInstruction = `You are a professional technical designer for Minecraft ${edition} mods. Create a detailed architecture plan for the user's idea. Output your result directly as a clean Markdown layout starting with '# Minecraft Mod Blueprint'.`;
     } else {
         if (edition === "bedrock") {
-            systemInstruction = "You are an expert Minecraft Bedrock Add-on developer. Create an asset bundle for the user. Your output must be a single, valid JSON object containing exactly two keys: 'manifest' (the manifest.json object parameters) and 'logic_js' (the main script logic file string text). Do not include any extra conversational markdown text, descriptions, or formatting backticks.";
+            systemInstruction = "You are an expert Minecraft Bedrock Add-on developer. Output MUST be a single JSON object with two keys: 'manifest' (manifest.json content) and 'logic_js' (main script logic text). Do not include markdown formatting or extra commentary.";
         } else {
-            systemInstruction = "You are an expert Minecraft Java data pack generator. Create a data pack configuration setup. Your output must be a single, valid JSON object containing exactly two keys: 'pack_mcmeta' (the pack.mcmeta descriptor file) and 'function_mcfunction' (the tick/main game behavior instructions text written in raw standard minecraft commands). Do not include any chat commentary or markdown backticks.";
+            systemInstruction = "You are an expert Minecraft Java data pack generator. Output MUST be a single JSON object with two keys: 'pack_mcmeta' (pack.mcmeta content) and 'function_mcfunction' (raw mcfunction commands). Do not include markdown formatting or extra commentary.";
         }
     }
 
@@ -327,28 +449,30 @@ async function generateMinecraftMod() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 modelEndpoint: modelEndpoint,
-                inputs: `<|system|>\n${systemInstruction}\n<|user|>\nCreate a ${edition} mod asset package for: ${promptText}\n<|assistant|>\n`,
-                parameters: { max_new_tokens: 1200, return_full_text: false }
+                systemInstruction: systemInstruction,
+                promptText: `Create a ${edition} mod asset package for: ${promptText}`
             })
         });
 
         const data = await response.json();
 
         if (data && data.error && data.error.includes("loading")) {
-            appendLog('system', 'WARNING: AI cluster initializing on cloud grids. Executing automated pipeline sync in 6 seconds...');
+            appendLog('system', 'WARNING: Model warming up on cloud grid. Retrying in 6s...');
             setTimeout(generateMinecraftMod, 6000);
             return;
         }
 
         let aiText = "";
-        if (Array.isArray(data) && data[0] && data[0].generated_text) {
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            aiText = data.choices[0].message.content;
+        } else if (Array.isArray(data) && data[0] && data[0].generated_text) {
             aiText = data[0].generated_text;
         } else if (data && data.generated_text) {
             aiText = data.generated_text;
         } else if (data && data.error) {
             throw new Error(data.error);
         } else {
-            throw new Error("Invalid response structural format from cloud server.");
+            throw new Error("Invalid response payload from API worker.");
         }
 
         aiText = aiText.trim();
@@ -358,26 +482,26 @@ async function generateMinecraftMod() {
         let downloadName = "";
         let finalBlobContent;
 
-        if (aiMode === "planning") {
-            appendLog('system', 'Compiling raw blueprint structure into markdown stream document data...');
+        if (currentAiMode === "planning") {
+            appendLog('system', 'Saving blueprint stream to markdown file...');
             finalBlobContent = new Blob([aiText], { type: "text/markdown;charset=utf-8" });
             downloadName = "mod_development_plan.md";
         } else {
-            appendLog('system', 'Extracting json parameter bracket boundaries out of string array...');
+            appendLog('system', 'Parsing structured asset output...');
             const firstBracket = aiText.indexOf('{');
             const lastBracket = aiText.lastIndexOf('}');
 
             if (firstBracket === -1 || lastBracket === -1) {
-                throw new Error("Target missing JSON structure wrappers. Try typing a simpler prompt request.");
+                throw new Error("JSON structure missing. Try a simpler prompt.");
             }
 
             const cleanJsonString = aiText.substring(firstBracket, lastBracket + 1);
             const parsedData = JSON.parse(cleanJsonString);
 
-            appendLog('system', 'Injecting functional assets inside virtual browser directory blocks...');
+            appendLog('system', 'Archiving output assets...');
             if (edition === "bedrock") {
                 zip.file("manifest.json", JSON.stringify(parsedData.manifest || {}, null, 4));
-                zip.file("main.js", parsedData.logic_js || "// No bedrock logic generated");
+                zip.file("main.js", parsedData.logic_js || "// No logic generated");
                 downloadName = "custom_addon.mcaddon";
             } else {
                 zip.file("pack.mcmeta", JSON.stringify(parsedData.pack_mcmeta || { "pack": { "pack_format": 48, "description": "AI Generated Data Pack" } }, null, 4));
@@ -388,7 +512,7 @@ async function generateMinecraftMod() {
             finalBlobContent = await zip.generateAsync({ type: "blob" });
         }
 
-        appendLog('system', `Compilation complete. Launching file transfer downstream: ${downloadName}`);
+        appendLog('system', `Compilation complete. Downloading: ${downloadName}`);
         
         const link = document.createElement("a");
         link.href = URL.createObjectURL(finalBlobContent);
@@ -397,13 +521,13 @@ async function generateMinecraftMod() {
         link.click();
         document.body.removeChild(link);
 
-        appendLog('system', 'SUCCESS: Pipeline sequence cleanly completed.');
+        appendLog('system', 'SUCCESS: Build workflow completed.');
     } catch (error) {
-        appendLog('system', `CRASH ERROR: ${error.message} - Click Run again.`);
+        appendLog('system', `ERROR: ${error.message}`);
         console.error(error);
     } finally {
         pipelineBtn.disabled = false;
-        pipelineBtn.textContent = "Run AI Pipeline";
+        pipelineBtn.textContent = "Run";
     }
 }
 </script>
